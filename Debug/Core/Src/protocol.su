@@ -1,0 +1,2 @@
+../Core/Src/protocol.c:7:6:RXbufferClear	16	static
+../Core/Src/protocol.c:21:14:prarseRxBuffer	1352	static
