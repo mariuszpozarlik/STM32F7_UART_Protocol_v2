@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "ringbuff.h"
 #include "protocol.h"
+#include "commands.h"
 #include <stdarg.h>
 #include <string.h>
 /* USER CODE END Includes */
@@ -162,6 +163,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   HAL_UART_Receive_IT(&huart3, &Rx.array[Rx.empty], 1);
   bool processed = FALSE;
+  command_t response;
   while (1)
   {
 
@@ -181,15 +183,17 @@ int main(void)
 		frame = prarseRxBuffer();
 		if(frame.frameOK)
 		{
-			commands();
+			response = commands();
+			USART_Send(response.TX_payload);
 		}
 		processed = FALSE;
 	}
-
-    /* USER CODE BEGIN 3 */
   }
+    /* USER CODE BEGIN 3 */
+
+
+  	  /* USER CODE END 3 */
   /* USER CODE END WHILE */
-  /* USER CODE END 3 */
 }
 
 

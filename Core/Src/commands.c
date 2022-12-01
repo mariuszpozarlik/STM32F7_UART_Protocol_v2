@@ -14,29 +14,26 @@ extern framecontent frame;
 
 command_t commands()
 {
-	command_t comm = {"", 0};
+	command_t resp = {"", 0};
+	strcpy(resp.TX_payload, "Unknown");
 
 	if(strcmp(frame.command, "D1") == 0)
 	{
-		USART_Send("D1");
+		strcpy(resp.TX_payload, "D1");
 	}
 	else if(strcmp(frame.command, "D2") == 0)
 	{
-		USART_Send("D2");
+		strcpy(resp.TX_payload, "D2");
 	}
 	else if(strcmp(frame.command, "I") == 0)
 	{
-		USART_Send("I");
+		strcpy(resp.TX_payload, "I");
 	}
 	else if(strcmp(frame.command, "CLR") == 0)
 	{
-		USART_Send("CLR");
-	}
-	else
-	{
-		USART_Send("Unknown");
+		strcpy(resp.TX_payload, "CLR");
 	}
 
-	return comm;
+	return resp;
 }
 
