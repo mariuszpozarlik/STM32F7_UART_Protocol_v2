@@ -42,11 +42,14 @@ framecontent prarseRxBuffer()
 			{
 				l_checksum += RX.tempArray[5 + offset];
 			}
-			if (l_checksum == RxFrame.checksum)
+			if ((l_checksum == RxFrame.checksum) &&
+				(RxFrame.src_address > 1 && RxFrame.src_address < 10) &&
+				(RxFrame.dst_address > 1 && RxFrame.dst_address < 10))
 			{
 				RxFrame.frameOK = true;
 			}
 		}
 	}
+	memset(RX.tempArray, 0, 255);
 	return RxFrame;
 }

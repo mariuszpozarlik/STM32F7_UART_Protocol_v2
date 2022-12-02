@@ -56,7 +56,7 @@ framecontent frame;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+//$123123123#
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART3) {
@@ -167,7 +167,7 @@ int main(void)
   while (1)
   {
 
-	if(Rx.array[Rx.empty-1] == '#' && !processed)
+	if(Rx.array[Rx.empty-1] == '#' && !processed && Rx.array[Rx.beginIdx] == '$')
 	{
 	  while(Rx.beginIdx <= Rx.endIdx)
 	  {
@@ -185,6 +185,10 @@ int main(void)
 		{
 			response = commands();
 			USART_Send(response.TX_payload);
+		}
+		else
+		{
+			USART_Send("Frame Error");
 		}
 		processed = FALSE;
 	}
