@@ -18,7 +18,7 @@ void RXbufferClear(uint8_t* buff, int size) //memset
 //              "$       5            7             05                    12345         255             #
 //               ^       ^            ^             ^                     ^             ^               ^
 //      znak poczatku,  adres zroda,  adres celu,  ilość danych w ramce,  dane ramki, suma konrolna   znak konca ramki
-framecontent prarseRxBuffer()
+framecontent parseRxBuffer()
 {
 	buffer_t RX = Rx;
 	framecontent RxFrame;
@@ -31,7 +31,7 @@ framecontent prarseRxBuffer()
 		RxFrame.dst_address = RX.tempArray[2] - 48;
 		memcpy(tempstring, (const char*)&RX.tempArray[3], 2);
 		RxFrame.data_count = atoi((const char*)tempstring);
-		if(RxFrame.data_count <= 10)
+		if(RxFrame.data_count <= COMMAND_LEN)
 		{
 			RXbufferClear(tempstring, COMMAND_LEN);
 			RXbufferClear(RxFrame.command, COMMAND_LEN);
@@ -43,13 +43,13 @@ framecontent prarseRxBuffer()
 				l_checksum += RX.tempArray[5 + offset];
 			}
 			if ((l_checksum == RxFrame.checksum) &&
-				(RxFrame.src_address > 1 && RxFrame.src_address < 10) &&
-				(RxFrame.dst_address > 1 && RxFrame.dst_address < 10))
+				(RxFrame.src_address > 0 && RxFrame.src_address < 10) &&
+				(RxFrame.dst_address > 0 && RxFrame.dst_address < 10))
 			{
 				RxFrame.frameOK = true;
 			}
 		}
 	}
-	memset(RX.tempArray, 0, 255);
+	//memset(RX.tempArray, 0, 255);
 	return RxFrame;
 }

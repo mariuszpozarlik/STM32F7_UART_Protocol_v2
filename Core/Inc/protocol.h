@@ -6,7 +6,7 @@
 
 #define true 1
 #define false 0
-#define COMMAND_LEN 10
+#define COMMAND_LEN 99
 #define RX_BUFF_SIZE 19
 
 typedef struct frame
@@ -21,6 +21,6 @@ typedef struct frame
 
 
 void RXbufferClear(uint8_t* buff, int size);
-framecontent prarseRxBuffer();
+framecontent parseRxBuffer();
 
 #endif /* INC_PROTOCOL_H_ */

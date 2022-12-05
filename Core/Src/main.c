@@ -37,8 +37,7 @@ typedef uint8_t bool;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TRUE 1
-#define FALSE 0
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -56,31 +55,29 @@ framecontent frame;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-//$123123123#
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART3) {
 
-		if(Rx.array[Rx.empty] == '$')
-			Rx.beginIdx = Rx.empty;
-		if(Rx.array[Rx.empty] == '#')
-			Rx.endIdx = Rx.empty;
+		if(Rx.array[Rx.RXbuffIdx] == '$')
+			Rx.frameBeginIdx = Rx.RXbuffIdx;
+		if(Rx.array[Rx.RXbuffIdx] == '#')
+			Rx.frameEndIdx = Rx.RXbuffIdx;
 
-		Rx.empty++;
-		if (Rx.empty >= sizeOfBuffor) {
-			Rx.empty = 0;
+		Rx.RXbuffIdx++;
+		if (Rx.RXbuffIdx >= sizeOfBuffer) {
+			Rx.RXbuffIdx = 0;
 		}
-		HAL_UART_Receive_IT(&huart3, &Rx.array[Rx.empty], 1);
+		HAL_UART_Receive_IT(&huart3, &Rx.array[Rx.RXbuffIdx], 1);
 	}
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-	if(Tx.busy != Tx.empty){
-		uint8_t tempChar = Tx.array[Tx.busy];
-		Tx.busy++;
+	if(Tx.TXbuffIdx != Tx.RXbuffIdx){
+		uint8_t tempChar = Tx.array[Tx.TXbuffIdx];
+		Tx.TXbuffIdx++;
 
-		if(Tx.busy >= sizeOfBuffor){
-			Tx.busy = 0;
+		if(Tx.TXbuffIdx >= sizeOfBuffer){
+			Tx.TXbuffIdx = 0;
 		}
 		HAL_UART_Transmit_IT(&huart3, &tempChar, 1);
 	}
@@ -89,7 +86,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 void USART_Send(char* message, ...){
 	char tempMsg[105];
 	int i;
-	volatile int send_idx = Tx.empty;
+	volatile int send_idx = Tx.RXbuffIdx;
 
 	va_list arglist;
 	va_start(arglist, message);
@@ -99,25 +96,24 @@ void USART_Send(char* message, ...){
 	for (i = 0; i < strlen(tempMsg); i++) {
 		Tx.array[send_idx] = tempMsg[i];
 		send_idx++;
-		if (send_idx >= sizeOfBuffor) {
+		if (send_idx >= sizeOfBuffer) {
 			send_idx = 0;
 		}
 	}
 
 	__disable_irq();
-	if ((Tx.empty == Tx.busy) && (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_TXE)==SET)) {
-		Tx.empty = send_idx;
-		uint8_t tmp = Tx.array[Tx.busy];
-		Tx.busy++;
-		if (Tx.busy >= sizeOfBuffor)
-			Tx.busy = 0;
+	if ((Tx.RXbuffIdx == Tx.TXbuffIdx) && (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_TXE)==SET)) {
+		Tx.RXbuffIdx = send_idx;
+		uint8_t tmp = Tx.array[Tx.TXbuffIdx];
+		Tx.TXbuffIdx++;
+		if (Tx.TXbuffIdx >= sizeOfBuffer)
+			Tx.TXbuffIdx = 0;
 
 		HAL_UART_Transmit_IT(&huart3, &tmp, 1);
 		}else{
-			Tx.empty = send_idx;
+			Tx.RXbuffIdx = send_idx;
 		}
 	__enable_irq();
-
 }
 /* USER CODE END PFP */
 
@@ -132,67 +128,69 @@ void USART_Send(char* message, ...){
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
+	/* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+	/* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+	/* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+	/* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+	/* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_USART3_UART_Init();
-  /* USER CODE BEGIN 2 */
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_USART3_UART_Init();
+	/* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
+	/* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  HAL_UART_Receive_IT(&huart3, &Rx.array[Rx.empty], 1);
-  bool processed = FALSE;
-  command_t response;
-  while (1)
-  {
-
-	if(Rx.array[Rx.empty-1] == '#' && !processed && Rx.array[Rx.beginIdx] == '$')
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	HAL_UART_Receive_IT(&huart3, &Rx.array[Rx.RXbuffIdx], 1);
+	bool processed = false;
+	command_t response;
+	while (1)
 	{
-	  while(Rx.beginIdx <= Rx.endIdx)
-	  {
-		  Rx.tempArray[Rx.tempIdx] = Rx.array[Rx.beginIdx];
-		  Rx.tempIdx++, Rx.beginIdx++;
-		  if(Rx.beginIdx == (sizeOfBuffor-1))
-			  Rx.beginIdx = 0; //wrap
-		  processed = TRUE;
-	  }
-	  Rx.tempIdx = 0;
-	}
-	if(processed){
-		frame = prarseRxBuffer();
-		if(frame.frameOK)
+		if(Rx.array[Rx.frameEndIdx]   == '#'  &&
+		   Rx.array[Rx.frameBeginIdx] == '$'  &&
+		   !processed)
 		{
-			response = commands();
-			USART_Send(response.TX_payload);
+			while(Rx.frameBeginIdx <= Rx.frameEndIdx)
+			{
+			  Rx.tempArray[Rx.tempArrayIdx] = Rx.array[Rx.frameBeginIdx];
+			  Rx.tempArrayIdx++, Rx.frameBeginIdx++;
+			  if(Rx.frameBeginIdx == sizeOfBuffer)
+				  Rx.frameBeginIdx = 0; //wrap
+			  processed = true;
+			}
+			Rx.tempArrayIdx = 0;
+			if(processed)
+			{
+				frame = parseRxBuffer();
+				if(frame.frameOK)
+				{
+					response = commands();
+					USART_Send(response.TX_payload);
+				}
+				else
+				{
+					USART_Send("Frame Error");
+				}
+				processed = false;
+			}
 		}
-		else
-		{
-			USART_Send("Frame Error");
-		}
-		processed = FALSE;
 	}
-  }
     /* USER CODE BEGIN 3 */
 
 
