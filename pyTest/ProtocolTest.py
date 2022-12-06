@@ -3,11 +3,15 @@ import time
 from random import random
 print("#### Serial command tester for STM32 ####\n")
 
-class protocolSender:
-    def __init__(self, command, serial):
+class ProtocolSender:
+    def __init__(self, command, serial, src = None, dst = None):
         self.command = command
-        self.source = int(random()*1000)%10
-        self.destination = int(random()*1000)%10
+        self.source = src
+        self.destination = dst
+        if not src:
+            self.source = int((random()*100000)+1)%10
+        if not dst:
+            self.destination = int((random()*100000)+1)%10
         self.datacount = len(self.command)
         self.checksum = 0
         for i in self.command:
@@ -17,10 +21,10 @@ class protocolSender:
         self.ser = serial
 
     def SendAndResp(self):
-        if (self.datacount < 10):
+        if self.datacount < 10:
             self.message = bytes(f"${self.source}{self.destination}0{self.datacount}{self.command}{self.checksum}#",
                                  "ascii")
-        if (self.datacount >= 10):
+        if self.datacount >= 10:
             self.message = bytes(f"${self.source}{self.destination}{self.datacount}{self.command}{self.checksum}#",
                                  "ascii")
         print("***Frame parameters***")
@@ -31,7 +35,7 @@ class protocolSender:
               f"Sent command: {self.command}, "
               f"Calculated checksum: {self.checksum}")
         self.ser.write(self.message)
-        time.sleep(0.010)
+        time.sleep(0.050)
         print("Response from STM32: ", self.ser.read_all())
 
     def FrameCheksumErrorTest(self, checksumValue = 0):
@@ -40,26 +44,19 @@ class protocolSender:
         self.checksum = checksumValue
         return self
 
-def OpenSerialConnection():
-    ser = serial.Serial(
-        port='COM4',
-        baudrate=115200)
-    print("port settings: ", ser.baudrate)
-    return ser
-
-def CloseSerialConnecion(ser):
-    ser.close()
-
-
 if __name__ == "__main__":
-    SerialHandler = OpenSerialConnection()
+    SerialHandler = serial.Serial(
+        port="COM4",
+        baudrate=115200)
+    print("port settings: ", SerialHandler.baudrate)
+
     commands = ["D1", "D2", "I", "CLR", "READREG10000000000100"]
 
     for command in commands:
-        protocolSender(command, SerialHandler).SendAndResp()
+        ProtocolSender(command=command, serial=SerialHandler, src=1, dst=5).SendAndResp()
 
-    protocolSender("D1", SerialHandler).FrameCheksumErrorTest().SendAndResp()
-    CloseSerialConnecion(SerialHandler)
+    ProtocolSender("D1", SerialHandler).FrameCheksumErrorTest().SendAndResp()
+    SerialHandler.close()
 
 
 
