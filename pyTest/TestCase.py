@@ -1,7 +1,6 @@
 from ProtocolTest import ProtocolSender
 import serial
-
-class FrameTests(ProtocolSender):
+class TestCase(ProtocolSender):
     def __init__(self, command=None, serial=None, src = None, dst = None):
         super().__init__(command, serial, src, dst)
 
@@ -43,6 +42,7 @@ class FrameTests(ProtocolSender):
         print("---------------------------------")
 
 if __name__ == "__main__":
+    print("#### Serial command tester for STM32 ####")
     SerialHandler = serial.Serial(
         port="COM4",
         baudrate=115200)
@@ -51,10 +51,10 @@ if __name__ == "__main__":
     commands = ["D1", "D2", "I", "CLR"]
 
     for command in commands:
-        FrameTests(command=command, serial=SerialHandler).SendAndResp().CheckResponse()
+        TestCase(command=command, serial=SerialHandler).SendAndResp().CheckResponse()
 
-    FrameTests("D1", SerialHandler).FrameCheksumErrorTest(1177).SendAndResp().CheckResponse()
-    FrameTests("D1", SerialHandler).FrameSrcErrorTest().SendAndResp().CheckResponse()
-    FrameTests("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse()
-    FrameTests("D1", SerialHandler).FrameCustomCommandErrorTest("READREG10000000000100").SendAndResp().CheckResponse()
+    TestCase("D1", SerialHandler).FrameCheksumErrorTest().SendAndResp().CheckResponse()
+    TestCase("D1", SerialHandler).FrameSrcErrorTest().SendAndResp().CheckResponse()
+    TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse()
+    TestCase("D1", SerialHandler).FrameCustomCommandErrorTest("READREG10000000000100").SendAndResp().CheckResponse()
     SerialHandler.close()
