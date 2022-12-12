@@ -1,5 +1,6 @@
 import time
 from random import random
+from BColor import *
 
 class ProtocolSender:
     def __init__(self, command, serial, src = None, dst = None):
@@ -30,13 +31,23 @@ class ProtocolSender:
         if self.datacount >= 10:
             self.message = bytes(f"${self.source}{self.destination}{self.datacount}{self.command}{self.checksum}#",
                                  "ascii")
-        print("***Frame parameters***")
-        print(f"Message: {self.message}")
+        print(f"{HEADER}*** FRAME PARAMETERS ***{ENDC}")
+        print(f"Message: {BLUE}{self.message}{ENDC}")
         print(f"Source addres: {self.source}, "
               f"Destination address: {self.destination}, "
               f"Data count: {self.datacount}, "
               f"Sent command: {self.command}, "
               f"Calculated checksum: {self.checksum}")
+        self.ser.write(self.message)
+        time.sleep(0.050)
+        self.response = self.ser.read_all()
+        print("Response from STM32: ", self.response)
+        return self
+
+    '''allows to send any string as bytes'''
+    def SendRawAndResp(self):
+        print(f"{HEADER}*** FRAME PARAMETERS ***{ENDC}")
+        print(f"Message: {BLUE}{self.message}{ENDC}")
         self.ser.write(self.message)
         time.sleep(0.050)
         self.response = self.ser.read_all()
