@@ -58,11 +58,6 @@ void SystemClock_Config(void);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART3) {
 
-		if(Rx.array[Rx.RXbuffIdx] == '$')
-			Rx.frameBeginIdx = Rx.RXbuffIdx;
-		if(Rx.array[Rx.RXbuffIdx] == '#')
-			Rx.frameEndIdx = Rx.RXbuffIdx;
-
 		Rx.RXbuffIdx++;
 		if (Rx.RXbuffIdx >= sizeOfBuffer) {
 			Rx.RXbuffIdx = 0;
@@ -158,37 +153,52 @@ int main(void)
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	HAL_UART_Receive_IT(&huart3, &Rx.array[Rx.RXbuffIdx], 1);
-	bool processed = false;
+	bool receiving = false;
+	bool processing = false;
 	command_t response;
+	uint8_t frameChar = '\0';
+	uint8_t chars = 0;
 	while (1)
 	{
-		if(Rx.array[Rx.frameEndIdx]   == '#'  &&
-		   Rx.array[Rx.frameBeginIdx] == '$'  &&
-		   !processed)
+		if(Rx.RXbuffIdx != Rx.frameBeginIdx)
 		{
-			while(Rx.frameBeginIdx <= Rx.frameEndIdx)
+			frameChar = Rx.array[Rx.frameBeginIdx];
+			Rx.frameBeginIdx = Rx.RXbuffIdx; // odczytano znak i zaktualizowanie indeksu pomocniczego
+
+			if(frameChar == '$')
 			{
-			  Rx.tempArray[Rx.tempArrayIdx] = Rx.array[Rx.frameBeginIdx];
-			  Rx.tempArrayIdx++, Rx.frameBeginIdx++;
-			  if(Rx.frameBeginIdx == sizeOfBuffer)
-				  Rx.frameBeginIdx = 0; //wrap
-			  processed = true;
+				receiving = true;
+				//Rx.frameEndIdx = 0;
 			}
-			Rx.tempArrayIdx = 0;
-			if(processed)
+
+			if(receiving)
 			{
-				frame = parseRxBuffer();
-				if(frame.frameOK)
-				{
-					response = commands();
-					USART_Send(response.TX_payload);
-				}
-				else
-				{
-					USART_Send("Frame Error");
-				}
-				processed = false;
+				Rx.tempArray[chars] = frameChar;
+				chars++;
+
 			}
+			if(frameChar == '#')
+			{
+				receiving = false;
+				processing = true;
+				chars = 0;
+				//Rx.frameEndIdx = 0;
+			}
+		}
+
+		if(processing)
+		{
+			frame = parseRxBuffer();
+			if(frame.frameOK)
+			{
+				response = commands();
+				USART_Send(response.TX_payload);
+			}
+			else
+			{
+				USART_Send("Frame Error");
+			}
+			processing = false;
 		}
 	}
     /* USER CODE BEGIN 3 */

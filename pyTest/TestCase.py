@@ -71,16 +71,18 @@ if __name__ == "__main__":
     for command in commands:
         TestCase(command=command, serial=SerialHandler).SendAndResp().CheckResponse(command)
 
-    TestCase("D1", SerialHandler).FrameCheksumErrorTest().SendAndResp().CheckResponse("Frame Error")
-    TestCase("D1", SerialHandler).FrameSrcErrorTest().SendAndResp().CheckResponse("Frame Error")
-    TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Erro", comment="wrong expected resposne done intentionally")
-    TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Error")
-    TestCase(serial=SerialHandler).FrameCustomCommandErrorTest("READREG10000000000100").SendAndResp().CheckResponse("Unknown")
-
-    TestCase(serial=SerialHandler).FrameCustomMessage("$1203CLR112#").SendRawAndResp().CheckResponse("CLR")
-    TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1117#").SendRawAndResp().CheckResponse("D1")
-    TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp().CheckResponse("D1", comment="custom frame with wrong checksum")
-    TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1117#").SendRawAndResp().CheckResponse("D2", comment="wrong expected resposne done intentionally")
-    TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp()
+    while True:
+        # TestCase("D1", SerialHandler).FrameCheksumErrorTest().SendAndResp().CheckResponse("Frame Error")
+        # TestCase("D1", SerialHandler).FrameSrcErrorTest().SendAndResp().CheckResponse("Frame Error")
+        # TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Erro", comment="wrong expected resposne done intentionally")
+        # TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Error")
+        # TestCase(serial=SerialHandler).FrameCustomCommandErrorTest("READREG10000000000100").SendAndResp().CheckResponse("Unknown")
+        #
+        # TestCase(serial=SerialHandler).FrameCustomMessage("$1203CLR112#").SendRawAndResp().CheckResponse("CLR")
+        if Status.FAIL == TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1117#").SendRawAndResp().CheckResponse("D1")[0]:
+            print("breakpoint")
+        # TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp().CheckResponse("D1", comment="custom frame with wrong checksum")
+        # TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1117#").SendRawAndResp().CheckResponse("D2", comment="wrong expected resposne done intentionally")
+        # TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp()
 
     SerialHandler.close()

@@ -23,7 +23,7 @@ framecontent parseRxBuffer()
 	buffer_t RX = Rx;
 	framecontent RxFrame;
 	uint8_t l_checksum = 0;
-	uint8_t tempstring[COMMAND_LEN] = "";
+	uint8_t tempstring[COMMAND_LEN] = ""; // domyslne ustawienie zmiennej przez kompilator jako string czyli wypenienie tablicy '/0'
 	RxFrame.frameOK = false;
 	if(*RX.tempArray == '$')
 	{
@@ -50,6 +50,6 @@ framecontent parseRxBuffer()
 			}
 		}
 	}
-	//memset(RX.tempArray, 0, 255);
+	memset(Rx.tempArray, 0, 255);
 	return RxFrame;
 }
