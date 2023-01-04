@@ -160,12 +160,12 @@ int main(void)
 	uint8_t chars = 0;
 	while (1)
 	{
-		if(Rx.RXbuffIdx != Rx.frameBeginIdx)
+		if(Rx.RXbuffIdx != Rx.ReceivedCharIdx)
 		{
-			frameChar = Rx.array[Rx.frameBeginIdx];
-			Rx.frameBeginIdx = Rx.RXbuffIdx; // odczytano znak i zaktualizowanie indeksu pomocniczego
+			frameChar = Rx.array[Rx.ReceivedCharIdx];
+			Rx.ReceivedCharIdx = Rx.RXbuffIdx; // odczytano znak i zaktualizowanie indeksu pomocniczego
 
-			if(frameChar == '$')
+			if(frameChar == 0x24) // '$'
 			{
 				receiving = true;
 				//Rx.frameEndIdx = 0;
@@ -177,7 +177,7 @@ int main(void)
 				chars++;
 
 			}
-			if(frameChar == '#')
+			if(frameChar == 0x23) // '#'
 			{
 				receiving = false;
 				processing = true;

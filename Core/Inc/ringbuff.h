@@ -7,8 +7,7 @@
 typedef struct buffer_t {
 	uint16_t TXbuffIdx;
 	uint16_t RXbuffIdx;
-	uint16_t frameBeginIdx;
-	uint16_t frameEndIdx;
+	uint16_t ReceivedCharIdx;
 	uint8_t tempArray[255];
 	uint8_t tempArrayIdx;
 	uint8_t array[sizeOfBuffer];

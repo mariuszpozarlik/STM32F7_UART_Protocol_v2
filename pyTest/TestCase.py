@@ -46,7 +46,7 @@ class TestCase(ProtocolSender):
         if self.response == self.expected_response:
             print(f"{GREEN}### TEST PASSED #######{ENDC}")
             self.test_status = Status.PASS
-        elif comment:
+        elif comment and len(self.response) > 0:
             print(f"{WARN}### TEST WARNING #######{ENDC}")
             self.test_status = Status.WARNING
         else:
@@ -68,21 +68,31 @@ if __name__ == "__main__":
 
     commands = ["D1", "D2", "I", "CLR"]
 
-    for command in commands:
-        TestCase(command=command, serial=SerialHandler).SendAndResp().CheckResponse(command)
-
     while True:
-        # TestCase("D1", SerialHandler).FrameCheksumErrorTest().SendAndResp().CheckResponse("Frame Error")
-        # TestCase("D1", SerialHandler).FrameSrcErrorTest().SendAndResp().CheckResponse("Frame Error")
-        # TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Erro", comment="wrong expected resposne done intentionally")
-        # TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Error")
-        # TestCase(serial=SerialHandler).FrameCustomCommandErrorTest("READREG10000000000100").SendAndResp().CheckResponse("Unknown")
-        #
-        # TestCase(serial=SerialHandler).FrameCustomMessage("$1203CLR112#").SendRawAndResp().CheckResponse("CLR")
+        if Status.FAIL == TestCase("D1", SerialHandler).FrameCheksumErrorTest().SendAndResp().CheckResponse("Frame Error")[0]:
+            break
+        if Status.FAIL == TestCase("D1", SerialHandler).FrameSrcErrorTest().SendAndResp().CheckResponse("Frame Error")[0]:
+            break
+        if Status.FAIL == TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Erro", comment="wrong expected resposne done intentionally")[0]:
+            break
+        if Status.FAIL == TestCase("D1", SerialHandler).FrameDstErrorTest().SendAndResp().CheckResponse("Frame Error")[0]:
+            break
+        if Status.FAIL == TestCase(serial=SerialHandler).FrameCustomCommandErrorTest("READREG10000000000100").SendAndResp().CheckResponse("Unknown")[0]:
+            break
+        if Status.FAIL == TestCase(serial=SerialHandler).FrameCustomCommandErrorTest("TO SA DANE RAMKI I RAMKA MOZE MIEC MAKSYMALNIE 99 ZNAKOW I TO JEST W SUMIE DUZO").SendAndResp().CheckResponse("Unknown")[0]:
+            break
+        if Status.FAIL == TestCase(serial=SerialHandler).FrameCustomMessage("$1203CLR112#").SendRawAndResp().CheckResponse("CLR")[0]:
+            pass
+        for command in commands:
+            if Status.FAIL == TestCase(command=command, serial=SerialHandler).SendAndResp().CheckResponse(command)[0]:
+                break
         if Status.FAIL == TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1117#").SendRawAndResp().CheckResponse("D1")[0]:
-            print("breakpoint")
-        # TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp().CheckResponse("D1", comment="custom frame with wrong checksum")
-        # TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1117#").SendRawAndResp().CheckResponse("D2", comment="wrong expected resposne done intentionally")
-        # TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp()
+            break
+        if Status.FAIL == TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp().CheckResponse("D1", comment="custom frame with wrong checksum")[0]:
+            break
+        if Status.FAIL == TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1117#").SendRawAndResp().CheckResponse("D2", comment="wrong expected resposne done intentionally")[0]:
+            break
+        TestCase(serial=SerialHandler).FrameCustomMessage("$2702D1118#").SendRawAndResp()
+
 
     SerialHandler.close()
